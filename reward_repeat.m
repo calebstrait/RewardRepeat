@@ -24,14 +24,64 @@ function reward_repeat(monkeysInitial)
     % -------------- Global variables -------------- %
     % ---------------------------------------------- %
     
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@                                @@@@@@@ %
+    % @@@@@@@  FREQUENTLY CHANGED VARIABLES  @@@@@@@ %
+    % @@@@@@@                                @@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    
+      experimentType = 'training1';         % Values: 'training1' (all borders), 
+                                            %         'training2' (no borders 
+                                            %         during choice phase), or
+                                            %         'regular' (no borders).
+      
+      images         = [{'stone'}];         % Values: Any cell array of string
+                                            %         image names.
+      
+      rewardPause    = 0.1;                 % Values: Any integer. Pause between
+                                            %         rewards with multi rewards.                             
+      
+      rewardVSmall   = [0.06]; %#ok<*NBRAK> % Values: Any array of number reward
+                                            %         durations.
+      rewardSmall    = [0.08];              % Values: Any array of number reward
+                                            %         durations.
+      rewardMedium   = [0.1];               % Values: Any array of number reward
+                                            %         durations.
+      rewardLarge    = [0.12];              % Values: Any array of number reward
+                                            %         durations.
+      rewardVLarge   = [0.14];              % Values: Any array of number reward
+                                            %         durations.
+      
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
+    
     % Colors.
     colorBackground  = [0 0 0];
+    colorBlue        = [0 0 255];
+    colorCyan        = [0 255 255];
+    colorGray        = [128 128 128];
+    colorGreen       = [0 255 0];
+    colorOrange      = [255 127 0];
     colorYellow      = [255 255 0];
+    colorWhite       = [255 255 255];
     
     % Coordinates.
     centerX          = 512;                  % X pixel coordinate for the screen center.
     centerY          = 384;                  % Y pixel coordinate for the screen center.
+    endsBoundAdj     = 384;                  % Coordinate adjustment.
+    fixAdjust        = 172;                  % Target fixation adjustments.
+    grayBarHeight    = 400;                  % Height of the neutral gray bar.
     hfWidth          = 88;                   % Half the width of the fixation boxes.
+    imageWidth       = 128;                  % The width of the presented images.
+    imageHeight      = 128;                  % The height of the presented images.
+    sideBoundAdj     = 211;                  % Coordinate adjustment.
     
     % Values to calculate fixation boxes.
     fixBoundXMax     = centerX + hfWidth;
@@ -39,19 +89,51 @@ function reward_repeat(monkeysInitial)
     fixBoundYMax     = centerY + hfWidth;
     fixBoundYMin     = centerY - hfWidth;
     
-    leftBoundXMax    = centerX;
-    leftBoundXMin    = centerX;
-    leftBoundYMax    = centerY;
-    leftBoundYMin    = centerY;
+    % Fixation bondaries for the left stimulus.
+    leftBoundXMax    = 2 * centerX - 4 * hfWidth - imageWidth - fixAdjust;
+    leftBoundXMin    = centerX - imageWidth - sideBoundAdj - fixAdjust;
+    leftBoundYMax    = centerY + endsBoundAdj;
+    leftBoundYMin    = centerY - endsBoundAdj;
     
-    rightBoundXMax   = centerX;
-    rightBoundXMin   = centerX;
-    rightBoundYMax   = centerY;
-    rightBoundYMin   = centerY;
+    % Fixation boundaries for the right stimulus.
+    rightBoundXMax   = centerX + imageWidth + sideBoundAdj + fixAdjust;
+    rightBoundXMin   = 4 * hfWidth + imageWidth + fixAdjust;
+    rightBoundYMax   = centerY + endsBoundAdj;
+    rightBoundYMin   = centerY - endsBoundAdj;
+    
+    % Coordinates for drawing the left stimulus image. 
+    leftStimXMax     = leftBoundXMax / 2 + imageWidth / 2;
+    leftStimXMin     = leftBoundXMax / 2 - imageWidth / 2;
+    leftStimYMax     = centerY + imageHeight / 2;
+    leftStimYMin     = centerY - imageHeight / 2;
+    
+    % Coordinates for drawing the right stimulus image.
+    rightStimXMax    = rightBoundXMax - (rightBoundXMax - rightBoundXMin) / 2 + imageWidth / 2;
+    rightStimXMin    = rightBoundXMax - (rightBoundXMax - rightBoundXMin) / 2 - imageWidth / 2;
+    rightStimYMax    = centerY + imageHeight / 2;
+    rightStimYMin    = centerY - imageHeight / 2;
+    
+    % Coordinates for drawing the left grey bar.
+    leftGreyXMax     = leftBoundXMax / 2 + imageWidth / 2;
+    leftGreyXMin     = leftBoundXMax / 2 - imageWidth / 2;
+    leftGreyYMax     = centerY + grayBarHeight / 2;
+    leftGreyYMin     = centerY - grayBarHeight / 2;
+    
+    % Coordinates for drawing the right grey bar.
+    rightGreyXMax    = rightBoundXMax - (rightBoundXMax - rightBoundXMin) / 2 + imageWidth / 2;
+    rightGreyXMin    = rightBoundXMax - (rightBoundXMax - rightBoundXMin) / 2 - imageWidth / 2;
+    rightGreyYMax    = centerY + grayBarHeight / 2;
+    rightGreyYMin    = centerY - grayBarHeight / 2;
+    
+    % Coordinates for drawing the center probe.
+    centerProbeXMax  = centerX + imageWidth / 2;
+    centerProbeXMin  = centerX - imageWidth / 2;
+    centerProbeYMax  = centerY + imageWidth / 2;
+    centerProbeYMin  = centerY - imageWidth / 2;
     
     % References.
     monkeyScreen     = 1;                    % Number of the screen the monkey sees.
-    trackedEye       = 1;                    % Values: 1 (left eye), 2 (right eye).
+    trackedEye       = 2;                    % Values: 1 (left eye), 2 (right eye).
     
     % Saving.
     data             = struct([]);           % Workspace variable where trial data is saved.
@@ -60,23 +142,46 @@ function reward_repeat(monkeysInitial)
     varName          = 'data';               % Name of the variable to save in the workspace.
     
     % Stimuli.
+    bordThick        = 20;                   % Thickness for all borders.
     dotRadius        = 10;                   % Radius of the fixation dot.
+    feedThick        = 10;                   % Thickness of the feedback borders.
     fixAdj           = 1;
     
     % Times.
-    ITI              = 2;                    % Intertrial interval.
+    chooseFixTime    = 0.5;                  % How long subject must look at choice to select it.
+    ITI              = 1;                    % Intertrial interval.
     minFixTime       = 0.1;                  % Minimum time monkey must fixate to start trial.
+    nearRewardDelay  = 0.5;                  % Delay before and after a reward is given.
     timeToFix        = intmax;               % Amount of time monkey is given to fixate.
     
     % Trial.
     currTrial        = 0;                    % Current trial.
+    probeLocation    = '';                   % Where probe is re-presented (right or left).
+    probeSpot        = 0;                    % Code for where probe is re-presented (right or left).
+    screenFlip       = true;                 % Whether or not the screen should be "flipped."
+    trialBorder      = [];                   % Border color of the probe for the trial.
+    trialImage       = 0;                    % The neutral image used for the trial.
+    trialReward      = [];                   % The reward amount(s) used for the trial.
     
     % ---------------------------------------------- %
     % ------------------- Setup -------------------- %
     % ---------------------------------------------- %
     
+    % Load images
+    for i = 1:size(images, 2)
+        if strcmp(char(images(i)), 'ocean')
+            imgOcean = imread('images/ocean.jpg', 'jpg');
+        elseif strcmp(char(images(i)), 'marble')
+            imgMarble = imread('images/marble.jpg', 'jpg');
+        elseif strcmp(char(images(i)), 'stone')
+            imgStone = imread('images/stone.jpg', 'jpg');
+        elseif strcmp(char(images(i)), 'wheat')
+            imgWheat = imread('images/wheat.jpg', 'jpg');
+        end
+    end
+    
     % Saving.
-    prepare_for_saving;
+    % prepare_for_saving;
     
     % Window.
     window = setup_window;
@@ -91,7 +196,6 @@ function reward_repeat(monkeysInitial)
     running = true;
     while running
         run_single_trial;
-        
         
         % print_stats();
         
@@ -149,6 +253,12 @@ function reward_repeat(monkeysInitial)
                 % Determine if eye is within the left option boundary.
                 if xCoord >= leftBoundXMin && xCoord <= leftBoundXMax && ...
                    yCoord >= leftBoundYMin && yCoord <= leftBoundYMax
+                    if probeSpot == 1
+                        draw_feedback('left', 'probe', colorWhite);
+                    else
+                        draw_feedback('left', 'neutral', colorWhite);
+                    end
+                    
                     % Determine if eye maintained fixation for given duration.
                     checkFixBreak = fix_break_check(leftBoundXMin, leftBoundXMax, ...
                                                     leftBoundYMin, leftBoundYMax, ...
@@ -157,13 +267,21 @@ function reward_repeat(monkeysInitial)
                     if checkFixBreak == false
                         % Fixation was obtained for desired duration.
                         fixation = true;
-                        area = 'double';
+                        area = 'left';
                         
                         return;
+                    else
+                        display_choice;
                     end
                 % Determine if eye is within the right option boundary.
                 elseif xCoord >= rightBoundXMin && xCoord <= rightBoundXMax && ...
                        yCoord >= rightBoundYMin && yCoord <= rightBoundYMax
+                    if probeSpot == 2
+                        draw_feedback('right', 'probe', colorWhite);
+                    else
+                        draw_feedback('right', 'neutral', colorWhite);
+                    end
+                    
                     % Determine if eye maintained fixation for given duration.
                     checkFixBreak = fix_break_check(rightBoundXMin, rightBoundXMax, ...
                                                     rightBoundYMin, rightBoundYMax, ...
@@ -172,9 +290,11 @@ function reward_repeat(monkeysInitial)
                     if checkFixBreak == false
                         % Fixation was obtained for desired duration.
                         fixation = true;
-                        area = 'double';
+                        area = 'right';
                         
                         return;
+                    else
+                        display_choice;
                     end
                 end
             else
@@ -187,10 +307,175 @@ function reward_repeat(monkeysInitial)
         area = 'none';
     end
     
+    % Generates a new probe.
+    function create_probe()
+        probeSpot = rand_int(2);
+        
+        % Choose a random reward amount for this trial.
+        randInt1 = rand_int(5);
+        
+        if randInt1 == 1
+            trialReward = rewardVSmall;
+            trialBorder = colorOrange;
+        elseif randInt1 == 2
+            trialReward = rewardSmall;
+            trialBorder = colorYellow;
+        elseif randInt1 == 3
+            trialReward = rewardMedium;
+            trialBorder = colorGray;
+        elseif randInt1 == 4
+            trialReward = rewardLarge;
+            trialBorder = colorBlue;
+        elseif randInt1 == 5
+            trialReward = rewardVLarge;
+            trialBorder = colorGreen;
+        end
+        
+        % Choose a random neutral image for this trial (possibly one choice).
+        randInt2 = rand_int(size(images, 2));
+        pickedImage = char(images(randInt2));
+        
+        if strcmp(pickedImage, 'marble')
+            trialImage = imgMarble;
+        elseif strcmp(pickedImage, 'ocean')
+            trialImage = imgOcean;
+        elseif strcmp(pickedImage, 'stone')
+            trialImage = imgStone;
+        elseif strcmp(pickedImage, 'wheat')
+            trialImage = imgWheat;
+        end
+    end
+    
+    % Draws the choice on the screen.
+    function display_choice()
+        % Show probe on left side.
+        if probeSpot == 1
+            probeLocation = 'left';
+            
+            Screen('PutImage', window, trialImage, [leftStimXMin, leftStimYMin, ...
+                                                    leftStimXMax, leftStimYMax]);
+            if strcmp(experimentType, 'training1')
+                Screen('FrameRect', window, trialBorder, [leftStimXMin - bordThick, ...
+                                                          leftStimYMin - bordThick, ...
+                                                          leftStimXMax + bordThick, ...
+                                                          leftStimYMax + bordThick], ...
+                                                          bordThick);
+            end
+            
+            Screen('FillRect', window, colorGray, [rightGreyXMin rightGreyYMin ...
+                                                   rightGreyXMax rightGreyYMax]);
+        % Show probe on right side.
+        else
+            probeLocation = 'right';
+            
+            Screen('PutImage', window, trialImage, [rightStimXMin, rightStimYMin, ...
+                                                    rightStimXMax, rightStimYMax]);
+            if strcmp(experimentType, 'training1')
+                Screen('FrameRect', window, trialBorder, [rightStimXMin - bordThick, ...
+                                                          rightStimYMin - bordThick, ...
+                                                          rightStimXMax + bordThick, ...
+                                                          rightStimYMax + bordThick], ...
+                                                          bordThick);
+            end
+            
+            Screen('FillRect', window, colorGray, [leftGreyXMin leftGreyYMin ...
+                                                   leftGreyXMax leftGreyYMax]);
+        end
+        
+        if screenFlip
+            Screen('Flip', window);
+        end
+    end
+    
+    % Draws the probe in the center of the screen.
+    function display_probe()
+        Screen('PutImage', window, trialImage, [centerProbeXMin, ...
+                                                centerProbeYMin, ...
+                                                centerProbeXMax, ...
+                                                centerProbeYMax]);
+                                            
+        if strcmp(experimentType, 'training1') || strcmp(experimentType, 'training2')
+            Screen('FrameRect', window, trialBorder, [centerProbeXMin - bordThick, ...
+                                                      centerProbeYMin - bordThick, ...
+                                                      centerProbeXMax + bordThick, ...
+                                                      centerProbeYMax + bordThick], ...
+                                                      bordThick);
+        end
+        
+        Screen('Flip', window);
+    end
+    
+    % Draw colored outlines around options for feedback.
+    function draw_feedback(location, type, color)
+        if strcmp(location, 'left')
+            if strcmp(type, 'probe')
+                screenFlip = false;
+                display_choice;
+                
+                if strcmp(experimentType, 'training1')
+                    Screen('FrameRect', window, color, [leftStimXMin - bordThick - feedThick, ...
+                                                        leftStimYMin - bordThick - feedThick, ...
+                                                        leftStimXMax + bordThick + feedThick, ...
+                                                        leftStimYMax + bordThick + feedThick], ...
+                                                        feedThick);
+                else
+                    Screen('FrameRect', window, color, [leftStimXMin - feedThick, ...
+                                                        leftStimYMin - feedThick, ...
+                                                        leftStimXMax + feedThick, ...
+                                                        leftStimYMax + feedThick], ...
+                                                        feedThick);
+                end
+            else
+                screenFlip = false;
+                display_choice;
+                Screen('FrameRect', window, color, [leftGreyXMin - feedThick, ...
+                                                    leftGreyYMin - feedThick, ...
+                                                    leftGreyXMax + feedThick, ...
+                                                    leftGreyYMax + feedThick], ...
+                                                    feedThick);
+            end
+        elseif strcmp(location, 'right')
+            if strcmp(type, 'probe')
+                screenFlip = false;
+                display_choice;
+                
+                if strcmp(experimentType, 'training1')
+                    Screen('FrameRect', window, color, [rightStimXMin - bordThick - feedThick, ...
+                                                        rightStimYMin - bordThick - feedThick, ...
+                                                        rightStimXMax + bordThick + feedThick, ...
+                                                        rightStimYMax + bordThick + feedThick], ...
+                                                        feedThick);
+                else
+                    Screen('FrameRect', window, color, [rightStimXMin - feedThick, ...
+                                                        rightStimYMin - feedThick, ...
+                                                        rightStimXMax + feedThick, ...
+                                                        rightStimYMax + feedThick], ...
+                                                        feedThick);
+                end
+            else
+                screenFlip = false;
+                display_choice;
+                Screen('FrameRect', window, color, [rightGreyXMin - feedThick, ...
+                                                    rightGreyYMin - feedThick, ...
+                                                    rightGreyXMax + feedThick, ...
+                                                    rightGreyYMax + feedThick], ...
+                                                    feedThick);
+            end
+        end
+        
+        Screen('Flip', window);
+        screenFlip = true;
+    end
+    
     % Draws a thin line on top of the invisible fixation boundaries.
     function draw_fixation_bounds()
         Screen('FrameRect', window, colorYellow, [fixBoundXMin fixBoundYMin ...
                                                   fixBoundXMax fixBoundYMax], 1);
+        Screen('FrameRect', window, colorYellow, [leftBoundXMin leftBoundYMin ...
+                                                  leftBoundXMax leftBoundYMax], 1);
+        Screen('FrameRect', window, colorYellow, [rightBoundXMin rightBoundYMin ...
+                                                  rightBoundXMax rightBoundYMax], 1);
+        
         Screen('Flip', window);
     end
     
@@ -263,7 +548,7 @@ function reward_repeat(monkeysInitial)
     
     % Makes a folder and file where data will be saved.
     function prepare_for_saving()
-        cd(riskySkewsData);
+        cd(rewardRepeatData);
         
         % Check if cell ID was passed in with monkey's initial.
         if numel(monkeysInitial) == 1
@@ -275,7 +560,7 @@ function reward_repeat(monkeysInitial)
         end
         
         dateStr = datestr(now, 'yymmdd');
-        filename = [initial dateStr '.' cell '1.<TrialNameInitials>.mat'];
+        filename = [initial dateStr '.' cell '1.RR.mat'];
         folderNameDay = [initial dateStr];
         
         % Make and/or enter a folder where .mat files will be saved.
@@ -291,7 +576,7 @@ function reward_repeat(monkeysInitial)
         while fileNum ~= 0
             if exist(filename, 'file') == 2
                 fileNum = fileNum + 1;
-                filename = [initial dateStr '.' cell num2str(fileNum) '.<TrialNameInitials>.mat'];
+                filename = [initial dateStr '.' cell num2str(fileNum) '.RR.mat'];
             else
                 fileNum = 0;
             end
@@ -358,31 +643,110 @@ function reward_repeat(monkeysInitial)
         disp('             ');
     end
     
+    % Returns a random int between 1 (inclusive) and integer (inclusive).
+    function randInt = rand_int(integer)
+        randInt = floor(rand(1) * integer + 1);
+    end
+    
     % Rewards monkey using the juicer with the passed duration.
-    function reward(rewardDuration)
-        if rewardDuration ~= 0
-            % Get a reference the juicer device and set reward duration.
-            daq = DaqDeviceIndex;
-            
+    function reward(rewardDurationsArray)
+        % Get a reference the juicer device and set reward duration.
+        daq = DaqDeviceIndex;
+        
+        % Determine if multiple rewards should be given.
+        numOfRewards = size(rewardDurationsArray, 2);
+        if numOfRewards > 1
+            multRewards = 1;
+        else
+            multRewards = 0;
+        end
+        
+        for index = 1:numOfRewards
             % Open juicer.
             DaqAOut(daq, 0, .6);
             
-            startTime = GetSecs;
-            
             % Keep looping to keep juicer open until reward end.
-            while (GetSecs - startTime) < rewardDuration
+            startTime = GetSecs;
+            while (GetSecs - startTime) < rewardDurationsArray(index)
             end
             
             % Close juicer.
             DaqAOut(daq, 0, 0);
+            
+            % Pause between multiple rewards.
+            if multRewards
+                % Don't pause after the last reward in a sequence.
+                if index ~= numOfRewards
+                    WaitSecs(rewardPause);
+                end
+            end
         end
     end
     
     % Does exactly what you freakin' think it does.
     function run_single_trial()
+        currTrial = currTrial + 1;
+        
+        create_probe;
+        
+        if currTrial == 1
+            WaitSecs(ITI);
+        end
+        
+        display_probe;
+        
+        WaitSecs(nearRewardDelay);
+        
+        % Give initial probe reward(s).
+        reward(trialReward);
+        
+        WaitSecs(nearRewardDelay);
+        
         draw_fixation_point(colorYellow);
         
-        send_and_save;
+        % Check for fixation.
+        [fixating, ~] = check_fixation('single', minFixTime, timeToFix);
+        
+        if fixating
+            display_choice;
+            
+            fixatingOnTarget = false;
+            while ~fixatingOnTarget
+                % Check for fixation on either targets.
+                [fixatingOnTarget, area] = check_fixation('double', chooseFixTime, timeToFix);
+                
+                if fixatingOnTarget
+                    if strcmp(area, 'left')
+                        if strcmp(probeLocation, 'left')
+                            draw_feedback('left', 'probe', colorCyan);
+                            WaitSecs(nearRewardDelay);
+                            reward(trialReward);
+                        else
+                            draw_feedback('left', 'neutral', colorCyan);
+                            WaitSecs(nearRewardDelay);
+                            reward(rewardMedium);
+                        end
+                    elseif strcmp(area, 'right')
+                        if strcmp(probeLocation, 'right')
+                            draw_feedback('right', 'probe', colorCyan);
+                            WaitSecs(nearRewardDelay);
+                            reward(trialReward);
+                        else
+                            draw_feedback('right', 'neutral', colorCyan);
+                            WaitSecs(nearRewardDelay);
+                            reward(rewardMedium);
+                        end
+                    end
+                    
+                    % Clear screen.
+                    Screen('FillRect', window, colorBackground, ...
+                           [0 0 (centerX * 2) (centerY * 2)]);
+                    Screen('Flip', window);
+                end
+            end
+        end
+        
+        % send_and_save;
     end
 
     % Saves trial data to a .mat file.
