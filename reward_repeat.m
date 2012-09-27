@@ -1,4 +1,4 @@
-% Copyright (c) 2012 Aaron Roth
+% Copyright (c) 2012 University of Rochester
 % 
 % Permission is hereby granted, free of charge, to any person obtaining a copy
 % of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,8 @@ function reward_repeat(monkeysInitial)
                                             %         durations.
       rewardVLarge   = [0.14];              % Values: Any array of number reward
                                             %         durations.
+      
+      trackedEye     = 1;                   % Values: 1 (left eye), 2 (right eye).
       
     % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
     % @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ %
@@ -133,12 +135,13 @@ function reward_repeat(monkeysInitial)
     
     % References.
     monkeyScreen     = 1;                    % Number of the screen the monkey sees.
-    trackedEye       = 2;                    % Values: 1 (left eye), 2 (right eye).
     
     % Saving.
     choiceMade       = '';                   % Which side was chosen.
     data             = struct([]);           % Workspace variable where trial data is saved.
+    numChoseImg      = 0;                    % Times image was chosen.
     numCorrTimes     = 0;                    % Times "correct" probe option chosen.
+    percentChoseImg  = 0;                    % Percent of times the image option was chosen.
     percentCorrect   = 0;                    % Percent "corect" probe chosen.
     rewardRepeatData = '/Data/RewardRepeat'; % Directory where .mat files are saved.
     saveCommand      = NaN;                  % Command string that will save .mat files.
@@ -159,11 +162,12 @@ function reward_repeat(monkeysInitial)
     
     % Trial.
     currTrial        = 0;                    % Current trial.
-    medReward        = 0;                    % Whether or not a medium reward was given.
     probeLocation    = '';                   % Where probe is re-presented (right or left).
     probeSpot        = 0;                    % Code for where probe is re-presented (right or left).
     screenFlip       = true;                 % Whether or not the screen should be "flipped."
+    trialColor       = '';                   % Border color of the current trial.
     trialBorder      = [];                   % Border color of the probe for the trial.
+    trialCountImpt   = 0;                    % Number of trials minus any trials with equal payouts.
     trialImage       = 0;                    % The neutral image used for the trial.
     trialReward      = [];                   % The reward amount(s) used for the trial.
     
@@ -321,23 +325,23 @@ function reward_repeat(monkeysInitial)
         if randInt1 == 1
             trialReward = rewardVSmall;
             trialBorder = colorOrange;
-            medReward = 0;
+            trialColor = 'orange';
         elseif randInt1 == 2
             trialReward = rewardSmall;
             trialBorder = colorYellow;
-            medReward = 0;
+            trialColor = 'yellow';
         elseif randInt1 == 3
             trialReward = rewardMedium;
             trialBorder = colorGray;
-            medReward = 1;
+            trialColor = 'gray';
         elseif randInt1 == 4
             trialReward = rewardLarge;
             trialBorder = colorBlue;
-            medReward = 0;
+            trialColor = 'blue';
         elseif randInt1 == 5
             trialReward = rewardVLarge;
             trialBorder = colorGreen;
-            medReward = 0;
+            trialColor = 'green';
         end
         
         % Choose a random neutral image for this trial (possibly one choice).
@@ -597,8 +601,9 @@ function reward_repeat(monkeysInitial)
     % Prints current trial stats.
     function print_stats()
         % Convert percentages to strings.
-        percentCorrStr  = strcat(num2str(percentCorrect), '%');
-        trialCountStr   = num2str(currTrial);
+        percentChoseImgStr = strcat(num2str(percentChoseImg), '%');
+        percentCorrStr = strcat(num2str(percentCorrect), '%');
+        trialCountStr = num2str(currTrial);
         
         home;
         disp('             ');
@@ -610,6 +615,8 @@ function reward_repeat(monkeysInitial)
         disp('----------------------------------------');
         disp('             ');
         fprintf('Total correct: % s', percentCorrStr);
+        disp('             ');
+        fprintf('Chose image: % s', percentChoseImgStr);
         disp('             ');
         disp('             ');
         disp('****************************************');
@@ -697,19 +704,15 @@ function reward_repeat(monkeysInitial)
         
         display_probe;
         
-        WaitSecs(nearRewardDelay);
-        
-        % Give initial probe reward(s).
-        reward(trialReward);
-        
-        WaitSecs(nearRewardDelay);
-        
-        draw_fixation_point(colorYellow);
-        
         % Check for fixation.
         [fixating, ~] = check_fixation('single', minFixTime, timeToFix);
         
         if fixating
+            % Give initial probe reward(s).
+            reward(trialReward);
+            
+            WaitSecs(nearRewardDelay);
+        
             display_choice;
             
             fixatingOnTarget = false;
@@ -723,12 +726,20 @@ function reward_repeat(monkeysInitial)
                             draw_feedback('left', 'probe', colorCyan);
                             WaitSecs(nearRewardDelay);
                             reward(trialReward);
+                            numChoseImg = numChoseImg + 1;
                             
-                            % Count as "correct" trial if medium probe not offered.
-                            if medReward == 0
-                                numCorrTimes = numCorrTimes + 1;
+                            % Made "correct" choice.
+                            if strcmp(trialColor, 'blue') || ...
+                               strcmp(trialColor, 'green')
+                               numCorrTimes = numCorrTimes + 1;
                             end
                         else
+                            % Made "correct" choice.
+                            if strcmp(trialColor, 'orange') || ...
+                               strcmp(trialColor, 'yellow')
+                               numCorrTimes = numCorrTimes + 1;
+                            end
+                            
                             draw_feedback('left', 'neutral', colorCyan);
                             WaitSecs(nearRewardDelay);
                             reward(rewardMedium);
@@ -740,12 +751,20 @@ function reward_repeat(monkeysInitial)
                             draw_feedback('right', 'probe', colorCyan);
                             WaitSecs(nearRewardDelay);
                             reward(trialReward);
+                            numChoseImg = numChoseImg + 1;
                             
-                            % Count as "correct" trial if medium probe not offered.
-                            if medReward == 0
-                                numCorrTimes = numCorrTimes + 1;
+                            % Made "correct" choice.
+                            if strcmp(trialColor, 'blue') || ...
+                               strcmp(trialColor, 'green')
+                               numCorrTimes = numCorrTimes + 1;
                             end
                         else
+                            % Made "correct" choice.
+                            if strcmp(trialColor, 'orange') || ...
+                               strcmp(trialColor, 'yellow')
+                               numCorrTimes = numCorrTimes + 1;
+                            end
+                            
                             draw_feedback('right', 'neutral', colorCyan);
                             WaitSecs(nearRewardDelay);
                             reward(rewardMedium);
@@ -754,7 +773,12 @@ function reward_repeat(monkeysInitial)
                         choiceMade = 'right';
                     end
                     
-                    percentCorrect = round((numCorrTimes / currTrial) * 100);
+                    if ~strcmp(trialColor, 'gray')
+                        trialCountImpt = trialCountImpt + 1;
+                    end
+                    
+                    percentChoseImg = round((numChoseImg / currTrial) * 100);
+                    percentCorrect = round((numCorrTimes / trialCountImpt) * 100);
                     save_trial_data;
                     
                     % Clear screen.
@@ -771,25 +795,26 @@ function reward_repeat(monkeysInitial)
     % Saves trial data to a .mat file.
     function save_trial_data()
         % Save variables to a .mat file.
-        data(currTrial).trial = currTrial;               % The trial number for this trial.
-        data(currTrial).experimentType = experimentType; % The type of experiment.
-        data(currTrial).probeLocation = probeLocation;   % Which side the probe was on.
-        data(currTrial).choice = choiceMade;             % Which side was chosen.
-        data(currTrial).numCorr = numCorrTimes;          % Number of times the "correct" choice was made.
-        data(currTrial).percentCorr = percentCorrect;    % Percent of times the "correct" choice was made.
-        data(currTrial).reward = trialReward;            % The reward duration(s) the monkey was given.
-        data(currTrial).rewardVSmall = rewardVSmall;     % Smallest reward duration(s).
-        data(currTrial).rewardSmall = rewardSmall;       % Small reward duration(s).
-        data(currTrial).rewardMedium = rewardMedium;     % Medium reward duration(s).
-        data(currTrial).rewardLarge = rewardLarge;       % Large reward duration(s).
-        data(currTrial).rewardVLarge = rewardVLarge;     % Largest reward duration(s).
-        data(currTrial).interRewardPause = rewardPause;  % Pause time between rewards.
-        data(currTrial).chooseTime = chooseFixTime;      % Time monkey most look at the option to select it.
-        data(currTrial).ITI = ITI;                       % Intertrial interval.
-        data(currTrial).minFixTime = minFixTime;         % Time monkey must fixate to start trial.
-        data(currTrial).timeToFix = timeToFix;           % Maximum time allowed to initiate trial.
-        data(currTrial).images = images;                 % Image(s) used for the neutral image(s).
-        data(currTrial).trackedEye = trackedEye;         % The eye being tracked.
+        data(currTrial).trial = currTrial;                 % The trial number for this trial.
+        data(currTrial).experimentType = experimentType;   % The type of experiment.
+        data(currTrial).probeLocation = probeLocation;     % Which side the probe was on.
+        data(currTrial).choice = choiceMade;               % Which side was chosen.
+        data(currTrial).numCorr = numCorrTimes;            % Number of times the "correct" choice was made.
+        data(currTrial).percentCorr = percentCorrect;      % Percent of times the "correct" choice was made.
+        data(currTrial).percentChoseImg = percentChoseImg; % Percent of times the image was chosen.
+        data(currTrial).reward = trialReward;              % The reward duration(s) the monkey was given.
+        data(currTrial).rewardVSmall = rewardVSmall;       % Smallest reward duration(s).
+        data(currTrial).rewardSmall = rewardSmall;         % Small reward duration(s).
+        data(currTrial).rewardMedium = rewardMedium;       % Medium reward duration(s).
+        data(currTrial).rewardLarge = rewardLarge;         % Large reward duration(s).
+        data(currTrial).rewardVLarge = rewardVLarge;       % Largest reward duration(s).
+        data(currTrial).interRewardPause = rewardPause;    % Pause time between rewards.
+        data(currTrial).chooseTime = chooseFixTime;        % Time monkey most look at the option to select it.
+        data(currTrial).ITI = ITI;                         % Intertrial interval.
+        data(currTrial).minFixTime = minFixTime;           % Time monkey must fixate to start trial.
+        data(currTrial).timeToFix = timeToFix;             % Maximum time allowed to initiate trial.
+        data(currTrial).images = images;                   % Image(s) used for the neutral image(s).
+        data(currTrial).trackedEye = trackedEye;           % The eye being tracked.
         
         eval(saveCommand);
     end
